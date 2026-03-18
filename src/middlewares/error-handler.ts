@@ -1,5 +1,7 @@
 import { type NextFunction, type Request, type Response } from "express";
 
+import { sendError } from "../shared/utils/response";
+
 export class AppError extends Error {
   public readonly statusCode: number;
   public readonly isOperational: boolean;
@@ -22,10 +24,7 @@ export function errorHandler(
   _next: NextFunction
 ): void {
   const statusCode = err instanceof AppError ? err.statusCode : 500;
-  const isProd = process.env.NODE_ENV === "production";
+  const code = statusCode === 400 ? "INVALID_INPUT" : statusCode === 404 ? "NOT_FOUND" : "INTERNAL_ERROR";
 
-  res.status(statusCode).json({
-    error: err.message,
-    ...(isProd ? {} : { stack: err.stack })
-  });
+  sendError(res, statusCode, code, err.message);
 }

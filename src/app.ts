@@ -3,8 +3,9 @@ import morgan from "morgan";
 
 import { env } from "./config/env";
 import { errorHandler, notFoundHandler } from "./middlewares/error-handler";
+import { resolveActor } from "./middlewares/identity.middleware";
 import { applySecurityMiddleware } from "./middlewares/security";
-import { apiRouter } from "./routes";
+import { apiV1Router } from "./routes";
 
 const app = express();
 
@@ -18,7 +19,7 @@ if (env.NODE_ENV !== "production") {
 
 applySecurityMiddleware(app);
 
-app.use("/api/v1", apiRouter);
+app.use("/api/v1", resolveActor, apiV1Router);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

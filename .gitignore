@@ -3,3 +3,5 @@ dist
 .env
 pnpm-lock.yaml
 .DS_Store
+docs
+guide
