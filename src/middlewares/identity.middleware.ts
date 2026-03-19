@@ -1,8 +1,10 @@
-import { createHmac, randomUUID, timingSafeEqual } from "crypto";
+import { randomUUID } from "crypto";
 import { type NextFunction, type Request, type Response } from "express";
-
+import { jwtVerify } from "jose";
 import { env } from "../config/env";
 import type { Actor } from "../shared/types/actor";
+
+const jwtSecretKey = new TextEncoder().encode(env.JWT_SECRET);
 
 function parseBearerToken(authorization?: string): string | null {
   if (!authorization) {
@@ -18,43 +20,11 @@ function parseBearerToken(authorization?: string): string | null {
   return token;
 }
 
-function decodeJwtSub(token: string): string | null {
-  const parts = token.split(".");
-
-  if (parts.length !== 3) {
-    return null;
-  }
-
+async function verifyJwtSub(token: string): Promise<string | null> {
   try {
-    const headerJson = Buffer.from(parts[0], "base64url").toString("utf8");
-    const payloadJson = Buffer.from(parts[1], "base64url").toString("utf8");
-    const header = JSON.parse(headerJson) as { alg?: string; typ?: string };
-    const payload = JSON.parse(payloadJson) as { sub?: string; exp?: number };
-
-    if (header.alg !== "HS256") {
-      return null;
-    }
-
-    const signedPart = `${parts[0]}.${parts[1]}`;
-    const expectedSignature = createHmac("sha256", env.JWT_SECRET)
-      .update(signedPart)
-      .digest("base64url");
-
-    const providedSignature = parts[2];
-    const expectedBuffer = Buffer.from(expectedSignature);
-    const providedBuffer = Buffer.from(providedSignature);
-
-    if (expectedBuffer.length !== providedBuffer.length) {
-      return null;
-    }
-
-    if (!timingSafeEqual(expectedBuffer, providedBuffer)) {
-      return null;
-    }
-
-    if (typeof payload.exp === "number" && payload.exp * 1000 <= Date.now()) {
-      return null;
-    }
+    const { payload } = await jwtVerify(token, jwtSecretKey, {
+      algorithms: ["HS256"]
+    });
 
     return typeof payload.sub === "string" && payload.sub.length > 0 ? payload.sub : null;
   } catch {
@@ -70,11 +40,11 @@ function parseGuestId(value: unknown): string | null {
   return value.trim();
 }
 
-export function resolveActor(req: Request, res: Response, next: NextFunction): void {
+export async function resolveActor(req: Request, res: Response, next: NextFunction): Promise<void> {
   const bearerToken = parseBearerToken(req.header("authorization"));
 
   if (bearerToken) {
-    const userId = decodeJwtSub(bearerToken);
+    const userId = await verifyJwtSub(bearerToken);
 
     if (userId) {
       req.actor = {
