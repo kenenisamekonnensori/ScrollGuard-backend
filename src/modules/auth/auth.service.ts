@@ -1,4 +1,5 @@
 import { compare, hash } from "bcryptjs";
+import { OAuth2Client } from "google-auth-library";
 import { SignJWT } from "jose";
 
 import { env } from "../../config/env";
@@ -6,6 +7,7 @@ import { AppError } from "../../middlewares/error-handler";
 import { UserModel } from "../user/user.model";
 
 const jwtSecretKey = new TextEncoder().encode(env.JWT_SECRET);
+const googleClient = new OAuth2Client();
 
 interface PublicUser {
   id: string;
@@ -26,8 +28,7 @@ interface EmailPasswordInput {
 }
 
 interface GoogleAuthInput {
-  googleId: string;
-  email: string;
+  idToken: string;
 }
 
 interface UpgradeGuestInput extends EmailPasswordInput {
@@ -64,21 +65,35 @@ async function signToken(userId: string): Promise<string> {
 }
 
 export async function signup(input: EmailPasswordInput): Promise<AuthResult> {
-  const email = normalizeEmail(input.email);
-  const existingUser = await UserModel.findOne({ email }).exec();
 
-  if (existingUser) {
-    throw new AppError("User already exists", 409, true, "INVALID_INPUT");
+  try {
+    const email = normalizeEmail(input.email);
+    const existingUser = await UserModel.findOne({ email }).exec();
+
+    if (existingUser) {
+      throw new AppError("User already exists", 409, true, "INVALID_INPUT");
+    }
+
+    const passwordHash = await hash(input.password, 12);
+    const user = await UserModel.create({ email, passwordHash });
+    const token = await signToken(user._id.toString());
+
+    return {
+      token,
+      user: toPublicUser(user)
+    };
+  }catch (error: any) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+
+    // Mongo duplicate key fallback
+    if (error.code === 11000) {
+      throw new AppError("User already exists", 409, true, "INVALID_INPUT");
+    }
+
+    throw new AppError("Failed to create user", 500, true, "INTERNAL_ERROR");
   }
-
-  const passwordHash = await hash(input.password, 12);
-  const user = await UserModel.create({ email, passwordHash });
-  const token = await signToken(user._id.toString());
-
-  return {
-    token,
-    user: toPublicUser(user)
-  };
 }
 
 export async function login(input: EmailPasswordInput): Promise<AuthResult> {
@@ -104,19 +119,44 @@ export async function login(input: EmailPasswordInput): Promise<AuthResult> {
 }
 
 export async function googleAuth(input: GoogleAuthInput): Promise<AuthResult> {
-  const email = normalizeEmail(input.email);
+  if (env.GOOGLE_CLIENT_IDS.length === 0) {
+    throw new AppError("Google auth is not configured", 500, true, "INTERNAL_ERROR");
+  }
+
+  let payload: { sub?: string; email?: string; email_verified?: boolean };
+
+  try {
+    const ticket = await googleClient.verifyIdToken({
+      idToken: input.idToken,
+      audience: env.GOOGLE_CLIENT_IDS
+    });
+    payload = ticket.getPayload() ?? {};
+  } catch {
+    throw new AppError("Invalid Google token", 401, true, "INVALID_CREDENTIALS");
+  }
+
+  if (!payload.sub || !payload.email) {
+    throw new AppError("Invalid Google token payload", 401, true, "INVALID_CREDENTIALS");
+  }
+
+  if (payload.email_verified === false) {
+    throw new AppError("Google email is not verified", 401, true, "INVALID_CREDENTIALS");
+  }
+
+  const googleId = payload.sub;
+  const email = normalizeEmail(payload.email);
 
   let user =
-    (await UserModel.findOne({ googleId: input.googleId }).exec()) ||
+    (await UserModel.findOne({ googleId }).exec()) ||
     (await UserModel.findOne({ email }).exec());
 
   if (!user) {
     user = await UserModel.create({
       email,
-      googleId: input.googleId
+      googleId
     });
   } else if (!user.googleId) {
-    user.googleId = input.googleId;
+    user.googleId = googleId;
     await user.save();
   }
 
