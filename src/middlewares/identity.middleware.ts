@@ -2,6 +2,7 @@ import { randomUUID } from "crypto";
 import { type NextFunction, type Request, type Response } from "express";
 import { jwtVerify } from "jose";
 import { env } from "../config/env";
+import { AppError } from "./error-handler";
 import type { Actor } from "../shared/types/actor";
 
 const jwtSecretKey = new TextEncoder().encode(env.JWT_SECRET);
@@ -75,5 +76,15 @@ export async function resolveActor(req: Request, res: Response, next: NextFuncti
   } satisfies Actor;
 
   res.setHeader("x-guest-id", createdGuestId);
+  next();
+}
+
+export function requireAuth(req: Request, _res: Response, next: NextFunction): void {
+  // User module endpoints must be inaccessible to guest actors.
+  if (!req.actor || req.actor.type !== "user") {
+    next(new AppError("Authentication required", 401, true, "AUTH_REQUIRED"));
+    return;
+  }
+
   next();
 }
