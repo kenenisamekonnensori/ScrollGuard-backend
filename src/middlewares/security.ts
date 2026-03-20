@@ -1,6 +1,7 @@
 import compression from "compression";
 import cors from "cors";
 import express, { type Express } from "express";
+import type { NextFunction, Request, Response } from "express";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import hpp from "hpp";
@@ -37,7 +38,24 @@ export function applySecurityMiddleware(app: Express): void {
   );
 
   app.use(hpp());
-  app.use(mongoSanitize());
+
+  // express-mongo-sanitize assigns req.query internally, which conflicts with
+  // Express 5 getter-only query property. Sanitize objects in-place instead.
+  app.use((req: Request, _res: Response, next: NextFunction) => {
+    if (req.body) {
+      mongoSanitize.sanitize(req.body);
+    }
+
+    if (req.params) {
+      mongoSanitize.sanitize(req.params);
+    }
+
+    if (req.query) {
+      mongoSanitize.sanitize(req.query);
+    }
+
+    next();
+  });
   app.use(compression());
 
   app.use(express.json({ limit: "10kb" }));

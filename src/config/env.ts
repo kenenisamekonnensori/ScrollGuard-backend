@@ -9,6 +9,15 @@ const envSchema = z.object({
   MONGODB_URI: z.string().min(1, "MONGODB_URI is required"),
   JWT_SECRET: z.string().min(1).default("dev-jwt-secret"),
   JWT_EXPIRES_IN: z.string().min(1).default("7d"),
+  GOOGLE_CLIENT_IDS: z
+    .string()
+    .default("")
+    .transform((value) =>
+      value
+        .split(",")
+        .map((item) => item.trim())
+        .filter((item) => item.length > 0)
+    ),
   CLIENT_ORIGIN: z.string().url().default("http://localhost:3000"),
   TRUST_PROXY: z
     .string()

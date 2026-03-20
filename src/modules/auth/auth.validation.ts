@@ -11,8 +11,7 @@ export const loginSchema = z.object({
 });
 
 export const googleAuthSchema = z.object({
-  googleId: z.string().min(1, "googleId is required"),
-  email: z.email().toLowerCase().trim()
+  idToken: z.string().min(1, "idToken is required")
 });
 
 export const upgradeGuestSchema = z.object({
@@ -20,3 +19,8 @@ export const upgradeGuestSchema = z.object({
   email: z.email().toLowerCase().trim(),
   password: z.string().min(8, "Password must be at least 8 characters")
 });
+
+export type SignupInput = z.infer<typeof signupSchema>;
+export type LoginInput = z.infer<typeof loginSchema>;
+export type GoogleAuthInput = z.infer<typeof googleAuthSchema>;
+export type UpgradeGuestInput = z.infer<typeof upgradeGuestSchema>;
