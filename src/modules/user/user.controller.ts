@@ -4,6 +4,7 @@ import { AppError } from "../../middlewares/error-handler";
 import { sendSuccess } from "../../shared/utils/response";
 import { getProfile, updateProfile } from "./user.service";
 import type { UpdateProfileInput } from "./user.validation";
+import { requireValidatedBody } from "../auth/auth.controller";
 
 function requireUserId(req: Request): string {
   if (!req.actor || req.actor.type !== "user") {
@@ -11,14 +12,6 @@ function requireUserId(req: Request): string {
   }
 
   return req.actor.id;
-}
-
-function requireValidatedBody<T>(req: Request): T {
-  if (!req.validated?.body) {
-    throw new AppError("Validated request body is missing", 500, true, "INTERNAL_ERROR");
-  }
-
-  return req.validated.body as T;
 }
 
 export async function getProfileController(

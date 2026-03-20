@@ -5,7 +5,7 @@ import { sendSuccess } from "../../shared/utils/response";
 import { googleAuth, login, signup, upgradeGuest } from "./auth.service";
 import type { GoogleAuthInput, LoginInput, SignupInput, UpgradeGuestInput } from "./auth.validation";
 
-function requireValidatedBody<T>(req: Request): T {
+export function requireValidatedBody<T>(req: Request): T {
   if (!req.validated?.body) {
     throw new AppError("Validated request body is missing", 500, true, "INTERNAL_ERROR");
   }
