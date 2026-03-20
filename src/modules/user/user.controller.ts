@@ -4,7 +4,7 @@ import { AppError } from "../../middlewares/error-handler";
 import { sendSuccess } from "../../shared/utils/response";
 import { getProfile, updateProfile } from "./user.service";
 import type { UpdateProfileInput } from "./user.validation";
-import { requireValidatedBody } from "../auth/auth.controller";
+import { requireValidatedBody } from "../../middlewares/validate.middleware";
 
 function requireUserId(req: Request): string {
   if (!req.actor || req.actor.type !== "user") {

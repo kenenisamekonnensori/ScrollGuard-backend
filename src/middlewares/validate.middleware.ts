@@ -48,3 +48,13 @@ export function validateRequest<T extends RequestSchemas>(schemas: T) {
     next();
   };
 }
+
+
+export function requireValidatedBody<T>(req: Request): T {
+  if (!req.validated?.body) {
+    throw new AppError("Validated request body is missing", 500, true, "INTERNAL_ERROR");
+  }
+
+  return req.validated.body as T;
+}
+
