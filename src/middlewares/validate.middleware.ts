@@ -58,3 +58,11 @@ export function requireValidatedBody<T>(req: Request): T {
   return req.validated.body as T;
 }
 
+export function requireValidatedQuery<T>(req: Request): T {
+  if (!req.validated?.query) {
+    throw new AppError("Validated request query is missing", 500, true, "INTERNAL_ERROR");
+  }
+
+  return req.validated.query as T;
+}
+
