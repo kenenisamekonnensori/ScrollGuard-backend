@@ -36,6 +36,10 @@ interface UpgradeGuestInput extends EmailPasswordInput {
   guestId: string;
 }
 
+interface AuthContext {
+  guestId?: string;
+}
+
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
 }
@@ -67,7 +71,7 @@ async function signToken(userId: string): Promise<string> {
 
 export async function signup(
   input: EmailPasswordInput,
-  context?: { guestId?: string }
+  context?: AuthContext
 ): Promise<AuthResult> {
   try {
     const email = normalizeEmail(input.email);
@@ -81,7 +85,7 @@ export async function signup(
     const user = await UserModel.create({ email, passwordHash });
 
     if (context?.guestId) {
-      await migrateGuestDataToUser(context.guestId, user._id.toString());
+      await migrateGuestDataToUserBestEffort(context.guestId, user._id.toString());
     }
 
     const token = await signToken(user._id.toString());
@@ -106,7 +110,7 @@ export async function signup(
 
 export async function login(
   input: EmailPasswordInput,
-  context?: { guestId?: string }
+  context?: AuthContext
 ): Promise<AuthResult> {
   const email = normalizeEmail(input.email);
   const user = await UserModel.findOne({ email }).exec();
@@ -122,7 +126,7 @@ export async function login(
   }
 
   if (context?.guestId) {
-    await migrateGuestDataToUser(context.guestId, user._id.toString());
+    await migrateGuestDataToUserBestEffort(context.guestId, user._id.toString());
   }
 
   const token = await signToken(user._id.toString());
@@ -206,6 +210,16 @@ async function migrateGuestDataToUser(guestId: string, userId: string): Promise<
   ).exec();
 }
 
+async function migrateGuestDataToUserBestEffort(guestId: string, userId: string): Promise<void> {
+  try {
+    await migrateGuestDataToUser(guestId, userId);
+  } catch (error) {
+    // Keep auth success aligned with persisted user state when migration fails.
+    const message = error instanceof Error ? error.message : "unknown error";
+    console.error(`Guest usage migration failed for user ${userId}: ${message}`);
+  }
+}
+
 export async function upgradeGuest(input: UpgradeGuestInput): Promise<AuthResult> {
   const email = normalizeEmail(input.email);
   const existingUser = await UserModel.findOne({ email }).exec();
@@ -217,7 +231,7 @@ export async function upgradeGuest(input: UpgradeGuestInput): Promise<AuthResult
   const passwordHash = await hash(input.password, 12);
   const user = await UserModel.create({ email, passwordHash });
 
-  await migrateGuestDataToUser(input.guestId, user._id.toString());
+  await migrateGuestDataToUserBestEffort(input.guestId, user._id.toString());
 
   const token = await signToken(user._id.toString());
 

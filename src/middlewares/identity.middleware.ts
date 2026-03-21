@@ -4,6 +4,7 @@ import { jwtVerify } from "jose";
 import { env } from "../config/env";
 import { AppError } from "./error-handler";
 import type { Actor } from "../shared/types/actor";
+import { parseGuestId } from "../shared/utils/guest-id";
 
 const jwtSecretKey = new TextEncoder().encode(env.JWT_SECRET);
 
@@ -31,14 +32,6 @@ async function verifyJwtSub(token: string): Promise<string | null> {
   } catch {
     return null;
   }
-}
-
-function parseGuestId(value: unknown): string | null {
-  if (typeof value !== "string" || value.trim().length === 0) {
-    return null;
-  }
-
-  return value.trim();
 }
 
 export async function resolveActor(req: Request, res: Response, next: NextFunction): Promise<void> {

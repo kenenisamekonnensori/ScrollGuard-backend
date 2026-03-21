@@ -126,4 +126,38 @@ describe("Auth Signup Endpoint", () => {
       }
     });
   });
+
+  it("keeps signup successful if guest migration fails", async () => {
+    usageModel.updateMany = () => ({
+      exec: async () => {
+        throw new Error("db transient error");
+      }
+    });
+
+    userModel.findOne = () => ({ exec: async () => null });
+    userModel.create = async (input: unknown) => {
+      const data = input as { email: string };
+      return {
+        _id: { toString: () => "user_test_789" },
+        email: data.email,
+        name: undefined,
+        isPremium: false,
+        createdAt: new Date()
+      };
+    };
+
+    const { app } = await import("../app");
+
+    const response = await request(app)
+      .post("/api/v1/auth/signup")
+      .set("x-guest-id", "guest_migrate_fail_001")
+      .send({
+        email: "migrate-fail@example.com",
+        password: "StrongPass123!"
+      });
+
+    assert.equal(response.status, 201);
+    assert.equal(response.body.success, true);
+    assert.equal(response.body.data.user.email, "migrate-fail@example.com");
+  });
 });
