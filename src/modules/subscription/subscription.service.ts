@@ -172,7 +172,7 @@ export async function upgradeSubscription(
     const maybeDupKey = error as { code?: number };
 
     if (maybeDupKey.code !== 11000) {
-      throw error;
+      throw new AppError("Failed to create subscription", 500, true, "INTERNAL_ERROR");
     }
 
     // Another concurrent request created the active row first; resolve deterministically.
