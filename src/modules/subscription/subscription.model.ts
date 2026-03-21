@@ -49,4 +49,13 @@ const subscriptionSchema = new Schema(
 // This index speeds up lookup for active subscriptions per user.
 subscriptionSchema.index({ userId: 1, status: 1, currentPeriodEnd: -1 });
 
+// Enforce at most one active subscription per user at the database level.
+subscriptionSchema.index(
+  { userId: 1, status: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { status: "active" }
+  }
+);
+
 export const SubscriptionModel = model("Subscription", subscriptionSchema);

@@ -6,9 +6,10 @@ import { sendSuccess } from "../../shared/utils/response";
 import { getSubscriptionStatus, upgradeSubscription } from "./subscription.service";
 import type { UpgradeSubscriptionInput } from "./subscription.validation";
 
-function requireUserId(req: Request): string {
+function readAuthenticatedUserId(req: Request): string {
+  // requireAuth middleware should guarantee this path; treat absence as wiring error.
   if (!req.actor || req.actor.type !== "user") {
-    throw new AppError("Authentication required", 401, true, "AUTH_REQUIRED");
+    throw new AppError("Actor context is missing after auth middleware", 500, true, "INTERNAL_ERROR");
   }
 
   return req.actor.id;
@@ -20,7 +21,7 @@ export async function getSubscriptionStatusController(
   next: NextFunction
 ): Promise<void> {
   try {
-    const result = await getSubscriptionStatus(requireUserId(req));
+    const result = await getSubscriptionStatus(readAuthenticatedUserId(req));
     sendSuccess(res, 200, result);
   } catch (error) {
     next(error);
@@ -34,7 +35,7 @@ export async function upgradeSubscriptionController(
 ): Promise<void> {
   try {
     const result = await upgradeSubscription(
-      requireUserId(req),
+      readAuthenticatedUserId(req),
       requireValidatedBody<UpgradeSubscriptionInput>(req)
     );
 

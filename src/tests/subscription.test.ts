@@ -22,6 +22,9 @@ type SubscriptionModelLike = {
   findOne: (filter: Record<string, unknown>) => {
     sort: (s: unknown) => { exec: () => Promise<unknown> };
   };
+  updateMany: (filter: Record<string, unknown>, update: Record<string, unknown>) => {
+    exec: () => Promise<unknown>;
+  };
   create: (input: unknown) => Promise<unknown>;
 };
 
@@ -30,12 +33,20 @@ const subscriptionModel = SubscriptionModel as unknown as SubscriptionModelLike;
 
 const originalUserFindById = userModel.findById;
 const originalSubscriptionFindOne = subscriptionModel.findOne;
+const originalSubscriptionUpdateMany = subscriptionModel.updateMany;
 const originalSubscriptionCreate = subscriptionModel.create;
 
 function restoreModels(): void {
   userModel.findById = originalUserFindById;
   subscriptionModel.findOne = originalSubscriptionFindOne;
+  subscriptionModel.updateMany = originalSubscriptionUpdateMany;
   subscriptionModel.create = originalSubscriptionCreate;
+}
+
+function mockNoopSubscriptionUpdateMany(): void {
+  subscriptionModel.updateMany = () => ({
+    exec: async () => ({ acknowledged: true })
+  });
 }
 
 async function createUserToken(userId: string): Promise<string> {
@@ -77,6 +88,7 @@ describe("Subscription Endpoints", () => {
     };
 
     userModel.findById = () => ({ exec: async () => user });
+    mockNoopSubscriptionUpdateMany();
     subscriptionModel.findOne = () => ({
       sort: () => ({ exec: async () => null })
     });
@@ -93,6 +105,74 @@ describe("Subscription Endpoints", () => {
     assert.equal(response.body.data.status, "none");
     assert.equal(response.body.data.isPremium, false);
     assert.equal(response.body.data.plan, null);
+    assert.equal(response.body.data.provider, null);
+  });
+
+  it("syncs stale premium flag to false when no active subscription exists", async () => {
+    let saveCalled = 0;
+    const user: UserDocStub = {
+      _id: { toString: () => "user_sub_001_sync" },
+      isPremium: true,
+      save: async () => {
+        saveCalled += 1;
+      }
+    };
+
+    userModel.findById = () => ({ exec: async () => user });
+    mockNoopSubscriptionUpdateMany();
+    subscriptionModel.findOne = () => ({
+      sort: () => ({ exec: async () => null })
+    });
+
+    const token = await createUserToken("user_sub_001_sync");
+    const { app } = await import("../app");
+
+    const response = await request(app)
+      .get("/api/v1/subscription/status")
+      .set("Authorization", `Bearer ${token}`);
+
+    assert.equal(response.status, 200);
+    assert.equal(response.body.data.status, "none");
+    assert.equal(response.body.data.isPremium, false);
+    assert.equal(user.isPremium, false);
+    assert.equal(saveCalled, 1);
+  });
+
+  it("syncs premium flag to true when active subscription exists", async () => {
+    let saveCalled = 0;
+    const user: UserDocStub = {
+      _id: { toString: () => "user_sub_001_promote" },
+      isPremium: false,
+      save: async () => {
+        saveCalled += 1;
+      }
+    };
+
+    const activeSubscription = {
+      plan: "monthly" as const,
+      currentPeriodStart: new Date("2026-01-01T00:00:00.000Z"),
+      currentPeriodEnd: new Date("2026-02-01T00:00:00.000Z"),
+      provider: "mock"
+    };
+
+    userModel.findById = () => ({ exec: async () => user });
+    mockNoopSubscriptionUpdateMany();
+    subscriptionModel.findOne = () => ({
+      sort: () => ({ exec: async () => activeSubscription })
+    });
+
+    const token = await createUserToken("user_sub_001_promote");
+    const { app } = await import("../app");
+
+    const response = await request(app)
+      .get("/api/v1/subscription/status")
+      .set("Authorization", `Bearer ${token}`);
+
+    assert.equal(response.status, 200);
+    assert.equal(response.body.data.status, "active");
+    assert.equal(response.body.data.provider, "mock");
+    assert.equal(user.isPremium, true);
+    assert.equal(saveCalled, 1);
   });
 
   it("creates active subscription and sets premium on upgrade", async () => {
@@ -105,6 +185,7 @@ describe("Subscription Endpoints", () => {
     let createCalled = false;
 
     userModel.findById = () => ({ exec: async () => user });
+    mockNoopSubscriptionUpdateMany();
     subscriptionModel.findOne = () => ({
       sort: () => ({ exec: async () => null })
     });
@@ -119,7 +200,8 @@ describe("Subscription Endpoints", () => {
       return {
         plan: body.plan,
         currentPeriodStart: body.currentPeriodStart,
-        currentPeriodEnd: body.currentPeriodEnd
+        currentPeriodEnd: body.currentPeriodEnd,
+        provider: "mock"
       };
     };
 
@@ -136,6 +218,7 @@ describe("Subscription Endpoints", () => {
     assert.equal(response.body.data.idempotent, false);
     assert.equal(response.body.data.subscription.status, "active");
     assert.equal(response.body.data.subscription.plan, "monthly");
+    assert.equal(response.body.data.subscription.provider, "mock");
     assert.equal(user.isPremium, true);
     assert.equal(createCalled, true);
   });
@@ -150,12 +233,14 @@ describe("Subscription Endpoints", () => {
     const activeSubscription = {
       plan: "yearly" as const,
       currentPeriodStart: new Date("2026-01-01T00:00:00.000Z"),
-      currentPeriodEnd: new Date("2027-01-01T00:00:00.000Z")
+      currentPeriodEnd: new Date("2027-01-01T00:00:00.000Z"),
+      provider: "mock"
     };
 
     let createCalled = false;
 
     userModel.findById = () => ({ exec: async () => user });
+    mockNoopSubscriptionUpdateMany();
     subscriptionModel.findOne = () => ({
       sort: () => ({ exec: async () => activeSubscription })
     });
@@ -176,7 +261,44 @@ describe("Subscription Endpoints", () => {
     assert.equal(response.body.success, true);
     assert.equal(response.body.data.idempotent, true);
     assert.equal(response.body.data.subscription.plan, "yearly");
+    assert.equal(response.body.data.subscription.provider, "mock");
     assert.equal(createCalled, false);
+  });
+
+  it("rejects plan change while active subscription exists", async () => {
+    const user: UserDocStub = {
+      _id: { toString: () => "user_sub_plan_conflict" },
+      isPremium: true,
+      save: async () => {}
+    };
+
+    const activeSubscription = {
+      plan: "monthly" as const,
+      currentPeriodStart: new Date("2026-01-01T00:00:00.000Z"),
+      currentPeriodEnd: new Date("2026-02-01T00:00:00.000Z"),
+      provider: "mock"
+    };
+
+    userModel.findById = () => ({ exec: async () => user });
+    mockNoopSubscriptionUpdateMany();
+    subscriptionModel.findOne = () => ({
+      sort: () => ({ exec: async () => activeSubscription })
+    });
+    subscriptionModel.create = async () => {
+      throw new Error("create should not be called");
+    };
+
+    const token = await createUserToken("user_sub_plan_conflict");
+    const { app } = await import("../app");
+
+    const response = await request(app)
+      .post("/api/v1/subscription/upgrade")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ plan: "yearly" });
+
+    assert.equal(response.status, 409);
+    assert.equal(response.body.success, false);
+    assert.equal(response.body.error.code, "INVALID_INPUT");
   });
 
   it("rejects invalid upgrade plan", async () => {
