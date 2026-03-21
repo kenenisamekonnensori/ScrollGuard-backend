@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import request from "supertest";
 
 import { UserModel } from "../modules/user/user.model";
+import { UsageModel } from "../modules/usage/usage.model";
 
 type FindOneResult = { exec: () => Promise<unknown> };
 
@@ -12,12 +13,17 @@ type UserModelLike = {
 };
 
 const userModel = UserModel as unknown as UserModelLike;
+const usageModel = UsageModel as unknown as {
+  updateMany: (filter: unknown, update: unknown) => { exec: () => Promise<unknown> };
+};
 const originalFindOne = userModel.findOne;
 const originalCreate = userModel.create;
+const originalUsageUpdateMany = usageModel.updateMany;
 
 function restoreUserModel(): void {
   userModel.findOne = originalFindOne;
   userModel.create = originalCreate;
+  usageModel.updateMany = originalUsageUpdateMany;
 }
 
 afterEach(() => {
@@ -26,6 +32,8 @@ afterEach(() => {
 
 describe("Auth Signup Endpoint", () => {
   it("returns 201 and does not crash on query assignment", async () => {
+    usageModel.updateMany = () => ({ exec: async () => ({ modifiedCount: 0 }) });
+
     userModel.findOne = () => ({ exec: async () => null });
     userModel.create = async (input: unknown) => {
       const data = input as { email: string };
@@ -72,5 +80,50 @@ describe("Auth Signup Endpoint", () => {
     assert.equal(response.status, 400);
     assert.equal(response.body.success, false);
     assert.equal(response.body.error.code, "INVALID_INPUT");
+  });
+
+  it("migrates guest usage during signup when x-guest-id is provided", async () => {
+    let capturedFilter: unknown;
+    let capturedUpdate: unknown;
+
+    usageModel.updateMany = (filter: unknown, update: unknown) => {
+      capturedFilter = filter;
+      capturedUpdate = update;
+      return { exec: async () => ({ modifiedCount: 2 }) };
+    };
+
+    userModel.findOne = () => ({ exec: async () => null });
+    userModel.create = async (input: unknown) => {
+      const data = input as { email: string };
+      return {
+        _id: { toString: () => "user_test_456" },
+        email: data.email,
+        name: undefined,
+        isPremium: false,
+        createdAt: new Date()
+      };
+    };
+
+    const { app } = await import("../app");
+
+    const response = await request(app)
+      .post("/api/v1/auth/signup")
+      .set("x-guest-id", "guest_migrate_001")
+      .send({
+        email: "migrate@example.com",
+        password: "StrongPass123!"
+      });
+
+    assert.equal(response.status, 201);
+    assert.deepEqual(capturedFilter, {
+      actorId: "guest_migrate_001",
+      actorType: "guest"
+    });
+    assert.deepEqual(capturedUpdate, {
+      $set: {
+        actorId: "user_test_456",
+        actorType: "user"
+      }
+    });
   });
 });

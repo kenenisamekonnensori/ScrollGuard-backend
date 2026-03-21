@@ -4,6 +4,7 @@ import { SignJWT } from "jose";
 
 import { env } from "../../config/env";
 import { AppError } from "../../middlewares/error-handler";
+import { UsageModel } from "../usage/usage.model";
 import { UserModel } from "../user/user.model";
 
 const jwtSecretKey = new TextEncoder().encode(env.JWT_SECRET);
@@ -64,8 +65,10 @@ async function signToken(userId: string): Promise<string> {
     .sign(jwtSecretKey);
 }
 
-export async function signup(input: EmailPasswordInput): Promise<AuthResult> {
-
+export async function signup(
+  input: EmailPasswordInput,
+  context?: { guestId?: string }
+): Promise<AuthResult> {
   try {
     const email = normalizeEmail(input.email);
     const existingUser = await UserModel.findOne({ email }).exec();
@@ -76,13 +79,18 @@ export async function signup(input: EmailPasswordInput): Promise<AuthResult> {
 
     const passwordHash = await hash(input.password, 12);
     const user = await UserModel.create({ email, passwordHash });
+
+    if (context?.guestId) {
+      await migrateGuestDataToUser(context.guestId, user._id.toString());
+    }
+
     const token = await signToken(user._id.toString());
 
     return {
       token,
       user: toPublicUser(user)
     };
-  }catch (error: any) {
+  } catch (error: any) {
     if (error instanceof AppError) {
       throw error;
     }
@@ -96,7 +104,10 @@ export async function signup(input: EmailPasswordInput): Promise<AuthResult> {
   }
 }
 
-export async function login(input: EmailPasswordInput): Promise<AuthResult> {
+export async function login(
+  input: EmailPasswordInput,
+  context?: { guestId?: string }
+): Promise<AuthResult> {
   const email = normalizeEmail(input.email);
   const user = await UserModel.findOne({ email }).exec();
 
@@ -108,6 +119,10 @@ export async function login(input: EmailPasswordInput): Promise<AuthResult> {
 
   if (!isPasswordValid) {
     throw new AppError("Invalid credentials", 401, true, "INVALID_CREDENTIALS");
+  }
+
+  if (context?.guestId) {
+    await migrateGuestDataToUser(context.guestId, user._id.toString());
   }
 
   const token = await signToken(user._id.toString());
@@ -168,8 +183,27 @@ export async function googleAuth(input: GoogleAuthInput): Promise<AuthResult> {
   };
 }
 
-async function migrateGuestDataToUser(_guestId: string, _userId: string): Promise<void> {
-  // Usage/feature/subscription transfer is implemented in Phase 9.
+async function migrateGuestDataToUser(guestId: string, userId: string): Promise<void> {
+  const normalizedGuestId = guestId.trim();
+
+  // Missing/blank guest identifiers are treated as no-op by design.
+  if (normalizedGuestId.length === 0) {
+    return;
+  }
+
+  // Update both ownership fields together so actor identity remains consistent.
+  await UsageModel.updateMany(
+    {
+      actorId: normalizedGuestId,
+      actorType: "guest"
+    },
+    {
+      $set: {
+        actorId: userId,
+        actorType: "user"
+      }
+    }
+  ).exec();
 }
 
 export async function upgradeGuest(input: UpgradeGuestInput): Promise<AuthResult> {
