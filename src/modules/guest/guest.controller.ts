@@ -10,6 +10,7 @@ export async function initGuestController(
 ): Promise<void> {
   try {
     const result = initializeGuest(req.actor);
+    res.header("x-guest-id", result.guestId);
     sendSuccess(res, 200, result);
   } catch (error) {
     next(error);
