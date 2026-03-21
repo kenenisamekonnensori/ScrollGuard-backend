@@ -1,14 +1,16 @@
 import { type NextFunction, type Request, type Response } from "express";
 
-import { AppError } from "../../middlewares/error-handler";
 import { sendSuccess } from "../../shared/utils/response";
+import { parseGuestId } from "../../shared/utils/guest-id";
 import { googleAuth, login, signup, upgradeGuest } from "./auth.service";
 import type { GoogleAuthInput, LoginInput, SignupInput, UpgradeGuestInput } from "./auth.validation";
 import { requireValidatedBody } from "../../middlewares/validate.middleware";
 
 export async function signupController(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const result = await signup(requireValidatedBody<SignupInput>(req));
+    const result = await signup(requireValidatedBody<SignupInput>(req), {
+      guestId: parseGuestId(req.header("x-guest-id"))
+    });
     sendSuccess(res, 201, result);
   } catch (error) {
     next(error);
@@ -17,7 +19,9 @@ export async function signupController(req: Request, res: Response, next: NextFu
 
 export async function loginController(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const result = await login(requireValidatedBody<LoginInput>(req));
+    const result = await login(requireValidatedBody<LoginInput>(req), {
+      guestId: parseGuestId(req.header("x-guest-id"))
+    });
     sendSuccess(res, 200, result);
   } catch (error) {
     next(error);
