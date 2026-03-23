@@ -1,0 +1,11 @@
+dockerignore:
+node_modules
+dist
+.git
+.env
+coverage
+Dockerfile
+.github
+docs
+guide
+.pnpm-store

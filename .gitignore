@@ -5,3 +5,12 @@ pnpm-lock.yaml
 .DS_Store
 docs
 guide
+
+.pnpm-store/
+pnpm-store/
+.env
+dist/
+.pnpm-store
+
+logs/
+*.log
