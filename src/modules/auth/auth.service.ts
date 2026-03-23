@@ -94,13 +94,16 @@ export async function signup(
       token,
       user: toPublicUser(user)
     };
-  } catch (error: any) {
+
+  } 
+    
+  catch (error: unknown) {
     if (error instanceof AppError) {
       throw error;
     }
 
     // Mongo duplicate key fallback
-    if (error.code === 11000) {
+    if (typeof error === "object" && error !== null && "code" in error && (error as { code?: number }).code === 11000) {
       throw new AppError("User already exists", 409, true, "INVALID_INPUT");
     }
 
