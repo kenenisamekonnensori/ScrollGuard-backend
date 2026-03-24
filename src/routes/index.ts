@@ -1,12 +1,12 @@
 import { Router } from "express";
 
-import { authRouter } from "../modules/auth/auth.routes";
-import { featureRouter } from "../modules/feature/feature.routes";
-import { guestRouter } from "../modules/guest/guest.routes";
-import { subscriptionRouter } from "../modules/subscription/subscription.routes";
-import { userRouter } from "../modules/user/user.routes";
-import { usageRouter } from "../modules/usage/usage.routes";
-import { healthRouter } from "./health.route";
+import { authRouter } from "@/modules/auth/auth.routes.js";
+import { featureRouter } from "@/modules/feature/feature.routes.js";
+import { guestRouter } from "@/modules/guest/guest.routes.js";
+import { subscriptionRouter } from "@/modules/subscription/subscription.routes.js";
+import { userRouter } from "@/modules/user/user.routes.js";
+import { usageRouter } from "@/modules/usage/usage.routes.js";
+import { healthRouter } from "@/routes/health.route.js";
 
 export const apiV1Router = Router();
 

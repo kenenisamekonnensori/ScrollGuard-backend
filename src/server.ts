@@ -1,6 +1,6 @@
-import { app } from "./app";
-import { connectDatabase, disconnectDatabase } from "./config/database";
-import { env } from "./config/env";
+import { app } from "@/app.js";
+import { connectDatabase, disconnectDatabase } from "@/config/database.js";
+import { env } from "@/config/env.js";
 
 let shuttingDown = false;
 

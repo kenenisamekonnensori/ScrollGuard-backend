@@ -7,7 +7,7 @@ import helmet from "helmet";
 import hpp from "hpp";
 import mongoSanitize from "express-mongo-sanitize";
 
-import { env } from "../config/env";
+import { env } from "@/config/env.js";
 
 export function applySecurityMiddleware(app: Express): void {
   app.disable("x-powered-by");

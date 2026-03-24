@@ -1,6 +1,6 @@
 import type { Response } from "express";
 
-import type { ApiErrorResponse, ApiSuccessResponse } from "../types/api-response";
+import type { ApiErrorResponse, ApiSuccessResponse } from "@/shared/types/api-response.js";
 
 export function sendSuccess<T>(
   res: Response,

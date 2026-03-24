@@ -2,8 +2,8 @@ import { afterEach, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import request from "supertest";
 
-import { UserModel } from "../modules/user/user.model";
-import { UsageModel } from "../modules/usage/usage.model";
+import { UserModel } from "@/modules/user/user.model.js";
+import { UsageModel } from "@/modules/usage/usage.model.js";
 
 type FindOneResult = { exec: () => Promise<unknown> };
 
@@ -46,7 +46,7 @@ describe("Auth Signup Endpoint", () => {
       };
     };
 
-    const { app } = await import("../app");
+    const { app } = await import("@/app.js");
 
     const response = await request(app)
       .post("/api/v1/auth/signup")
@@ -68,7 +68,7 @@ describe("Auth Signup Endpoint", () => {
   });
 
   it("returns validation error for malformed signup payload", async () => {
-    const { app } = await import("../app");
+    const { app } = await import("@/app.js");
 
     const response = await request(app)
       .post("/api/v1/auth/signup")
@@ -104,7 +104,7 @@ describe("Auth Signup Endpoint", () => {
       };
     };
 
-    const { app } = await import("../app");
+    const { app } = await import("@/app.js");
 
     const response = await request(app)
       .post("/api/v1/auth/signup")
@@ -146,7 +146,7 @@ describe("Auth Signup Endpoint", () => {
       };
     };
 
-    const { app } = await import("../app");
+    const { app } = await import("@/app.js");
 
     const response = await request(app)
       .post("/api/v1/auth/signup")

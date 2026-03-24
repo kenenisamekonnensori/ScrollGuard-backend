@@ -1,11 +1,11 @@
 import express from "express";
 import morgan from "morgan";
 
-import { env } from "./config/env";
-import { errorHandler, notFoundHandler } from "./middlewares/error-handler";
-import { resolveActor } from "./middlewares/identity.middleware";
-import { applySecurityMiddleware } from "./middlewares/security";
-import { apiV1Router } from "./routes";
+import { env } from "@/config/env.js";
+import { errorHandler, notFoundHandler } from "@/middlewares/error-handler.js";
+import { resolveActor } from "@/middlewares/identity.middleware.js";
+import { applySecurityMiddleware } from "@/middlewares/security.js";
+import { apiV1Router } from "@/routes/index.js";
 
 const app = express();
 

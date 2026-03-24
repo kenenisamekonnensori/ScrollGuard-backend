@@ -1,12 +1,12 @@
 import { Router } from "express";
 
-import { requireAuth } from "../../middlewares/identity.middleware";
-import { validateRequest } from "../../middlewares/validate.middleware";
+import { requireAuth } from "@/middlewares/identity.middleware.js";
+import { validateRequest } from "@/middlewares/validate.middleware.js";
 import {
   getSubscriptionStatusController,
   upgradeSubscriptionController
-} from "./subscription.controller";
-import { upgradeSubscriptionSchema } from "./subscription.validation";
+} from "@/modules/subscription/subscription.controller.js";
+import { upgradeSubscriptionSchema } from "@/modules/subscription/subscription.validation.js";
 
 export const subscriptionRouter = Router();
 

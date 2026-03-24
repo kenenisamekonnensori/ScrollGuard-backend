@@ -1,7 +1,7 @@
 import { type NextFunction, type Request, type Response } from "express";
 import { type ZodTypeAny, type infer as zInfer } from "zod";
 
-import { AppError } from "./error-handler";
+import { AppError } from "@/middlewares/error-handler.js";
 
 type RequestSchemas = {
   body?: ZodTypeAny;

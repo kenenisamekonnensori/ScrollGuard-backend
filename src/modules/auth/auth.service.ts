@@ -2,10 +2,10 @@ import { compare, hash } from "bcryptjs";
 import { OAuth2Client } from "google-auth-library";
 import { SignJWT } from "jose";
 
-import { env } from "../../config/env";
-import { AppError } from "../../middlewares/error-handler";
-import { UsageModel } from "../usage/usage.model";
-import { UserModel } from "../user/user.model";
+import { env } from "@/config/env.js";
+import { AppError } from "@/middlewares/error-handler.js";
+import { UsageModel } from "@/modules/usage/usage.model.js";
+import { UserModel } from "@/modules/user/user.model.js";
 
 const jwtSecretKey = new TextEncoder().encode(env.JWT_SECRET);
 const googleClient = new OAuth2Client();
@@ -94,13 +94,13 @@ export async function signup(
       token,
       user: toPublicUser(user)
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error instanceof AppError) {
       throw error;
     }
 
     // Mongo duplicate key fallback
-    if (error.code === 11000) {
+    if (typeof error === "object" && error !== null && "code" in error && (error as { code?: number }).code === 11000) {
       throw new AppError("User already exists", 409, true, "INVALID_INPUT");
     }
 

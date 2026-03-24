@@ -1,0 +1,33 @@
+
+services:
+  app:
+    image: node:20.19.0
+    container_name: backend_app
+
+    working_dir: /app
+    ports:
+      - "5000:5000"
+    env_file: 
+      - .env
+    volumes:
+      - type: bind
+        source: .
+        target: /app
+
+      - type: volume
+        target: /app/node_modules
+
+      - type: volume
+        source: pnpm_store
+        target: /pnpm/store
+
+    command: >
+      sh -c "
+        corepack enable &&
+        pnpm install &&
+        pnpm dev
+      "
+    restart: unless-stopped
+volumes:
+  pnpm_store:
+

@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { sendSuccess } from "../shared/utils/response";
+import { sendSuccess } from "@/shared/utils/response.js";
 
 export const healthRouter = Router();
 

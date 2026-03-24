@@ -1,4 +1,4 @@
-import type { Actor } from "./actor";
+import type { Actor } from "@/shared/types/actor.js";
 
 declare global {
   namespace Express {

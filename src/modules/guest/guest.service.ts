@@ -1,5 +1,5 @@
-import { AppError } from "../../middlewares/error-handler";
-import type { Actor } from "../../shared/types/actor";
+import { AppError } from "@/middlewares/error-handler.js";
+import type { Actor } from "@/shared/types/actor.js";
 
 interface GuestInitResult {
   guestId: string;

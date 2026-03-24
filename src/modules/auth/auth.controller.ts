@@ -1,10 +1,10 @@
 import { type NextFunction, type Request, type Response } from "express";
 
-import { sendSuccess } from "../../shared/utils/response";
-import { parseGuestId } from "../../shared/utils/guest-id";
-import { googleAuth, login, signup, upgradeGuest } from "./auth.service";
-import type { GoogleAuthInput, LoginInput, SignupInput, UpgradeGuestInput } from "./auth.validation";
-import { requireValidatedBody } from "../../middlewares/validate.middleware";
+import { sendSuccess } from "@/shared/utils/response.js";
+import { parseGuestId } from "@/shared/utils/guest-id.js";
+import { googleAuth, login, signup, upgradeGuest } from "@/modules/auth/auth.service.js";
+import type { GoogleAuthInput, LoginInput, SignupInput, UpgradeGuestInput } from "@/modules/auth/auth.validation.js";
+import { requireValidatedBody } from "@/middlewares/validate.middleware.js";
 
 export async function signupController(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {

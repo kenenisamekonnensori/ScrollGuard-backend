@@ -1,6 +1,6 @@
 import { type NextFunction, type Request, type Response } from "express";
 
-import { sendError } from "../shared/utils/response";
+import { sendError } from "@/shared/utils/response.js";
 
 export class AppError extends Error {
   public readonly statusCode: number;

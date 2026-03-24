@@ -1,8 +1,8 @@
 import { type NextFunction, type Request, type Response } from "express";
 
-import { AppError } from "../../middlewares/error-handler";
-import { sendSuccess } from "../../shared/utils/response";
-import { getFeaturesForActor } from "./feature.service";
+import { AppError } from "@/middlewares/error-handler.js";
+import { sendSuccess } from "@/shared/utils/response.js";
+import { getFeaturesForActor } from "@/modules/feature/feature.service.js";
 
 function requireActor(req: Request) {
   if (!req.actor) {

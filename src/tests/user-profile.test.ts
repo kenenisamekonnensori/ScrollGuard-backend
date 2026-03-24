@@ -4,8 +4,8 @@ import { afterEach, describe, it } from "node:test";
 import { SignJWT } from "jose";
 import request from "supertest";
 
-import { env } from "../config/env";
-import { UserModel } from "../modules/user/user.model";
+import { env } from "@/config/env.js";
+import { UserModel } from "@/modules/user/user.model.js";
 
 type FindByIdResult = { exec: () => Promise<unknown> };
 
@@ -47,7 +47,7 @@ afterEach(() => {
 
 describe("User Profile Endpoints", () => {
   it("rejects guest actor for GET /user/profile", async () => {
-    const { app } = await import("../app");
+    const { app } = await import("@/app.js");
 
     const response = await request(app).get("/api/v1/user/profile");
 
@@ -72,7 +72,7 @@ describe("User Profile Endpoints", () => {
     });
 
     const token = await createUserToken("user_123");
-    const { app } = await import("../app");
+    const { app } = await import("@/app.js");
 
     const response = await request(app)
       .get("/api/v1/user/profile")
@@ -99,7 +99,7 @@ describe("User Profile Endpoints", () => {
     userModel.findById = () => ({ exec: async () => user });
 
     const token = await createUserToken("user_456");
-    const { app } = await import("../app");
+    const { app } = await import("@/app.js");
 
     const response = await request(app)
       .patch("/api/v1/user/profile")

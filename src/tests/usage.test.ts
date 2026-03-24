@@ -4,8 +4,8 @@ import { afterEach, describe, it } from "node:test";
 import { SignJWT } from "jose";
 import request from "supertest";
 
-import { env } from "../config/env";
-import { UsageModel } from "../modules/usage/usage.model";
+import { env } from "@/config/env.js";
+import { UsageModel } from "@/modules/usage/usage.model.js";
 
 type UsageModelLike = {
   create: (input: unknown) => Promise<unknown>;
@@ -45,7 +45,7 @@ describe("Usage Module", () => {
       return input;
     };
 
-    const { app } = await import("../app");
+    const { app } = await import("@/app.js");
 
     const response = await request(app)
       .post("/api/v1/usage/track")
@@ -73,7 +73,7 @@ describe("Usage Module", () => {
     };
 
     const token = await createUserToken("user_track_001");
-    const { app } = await import("../app");
+    const { app } = await import("@/app.js");
 
     const response = await request(app)
       .post("/api/v1/usage/track")
@@ -115,7 +115,7 @@ describe("Usage Module", () => {
       ];
     };
 
-    const { app } = await import("../app");
+    const { app } = await import("@/app.js");
 
     const response = await request(app)
       .get("/api/v1/usage/stats")
@@ -131,7 +131,7 @@ describe("Usage Module", () => {
   });
 
   it("rejects invalid tracking payload", async () => {
-    const { app } = await import("../app");
+    const { app } = await import("@/app.js");
 
     const response = await request(app)
       .post("/api/v1/usage/track")
@@ -156,7 +156,7 @@ describe("Usage Module", () => {
       return hasTotalsGroup ? [] : [];
     };
 
-    const { app } = await import("../app");
+    const { app } = await import("@/app.js");
 
     const response = await request(app)
       .get("/api/v1/usage/stats")

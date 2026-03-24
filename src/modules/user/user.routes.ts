@@ -1,9 +1,9 @@
 import { Router } from "express";
 
-import { requireAuth } from "../../middlewares/identity.middleware";
-import { validateRequest } from "../../middlewares/validate.middleware";
-import { getProfileController, updateProfileController } from "./user.controller";
-import { updateProfileSchema } from "./user.validation";
+import { requireAuth } from "@/middlewares/identity.middleware.js";
+import { validateRequest } from "@/middlewares/validate.middleware.js";
+import { getProfileController, updateProfileController } from "@/modules/user/user.controller.js";
+import { updateProfileSchema } from "@/modules/user/user.validation.js";
 
 export const userRouter = Router();
 

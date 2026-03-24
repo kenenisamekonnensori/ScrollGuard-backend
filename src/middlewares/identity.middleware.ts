@@ -1,10 +1,10 @@
 import { randomUUID } from "crypto";
 import { type NextFunction, type Request, type Response } from "express";
 import { jwtVerify } from "jose";
-import { env } from "../config/env";
-import { AppError } from "./error-handler";
-import type { Actor } from "../shared/types/actor";
-import { parseGuestId } from "../shared/utils/guest-id";
+import { env } from "@/config/env.js";
+import { AppError } from "@/middlewares/error-handler.js";
+import type { Actor } from "@/shared/types/actor.js";
+import { parseGuestId } from "@/shared/utils/guest-id.js";
 
 const jwtSecretKey = new TextEncoder().encode(env.JWT_SECRET);
 

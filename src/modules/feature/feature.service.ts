@@ -1,6 +1,6 @@
-import type { Actor } from "../../shared/types/actor";
-import { UserModel } from "../user/user.model";
-import { FEATURE_DEFINITIONS, type FeatureDefinition } from "./feature.constants";
+import type { Actor } from "@/shared/types/actor.js";
+import { UserModel } from "@/modules/user/user.model.js";
+import { FEATURE_DEFINITIONS, type FeatureDefinition } from "@/modules/feature/feature.constants.js";
 
 export interface FeatureView {
   key: FeatureDefinition["key"];
