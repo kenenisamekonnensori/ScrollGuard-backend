@@ -42,8 +42,7 @@ USER appuser
 
 EXPOSE 5000
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-    CMD node -e "const http=require('http');const path=process.env.HEALTHCHECK_PATH;const port=process.env.PORT||5000;const req=http.get(`http://127.0.0.1:${port}${path}`,res=>process.exit(res.statusCode===200?0:1));req.on('error',()=>process.exit(1));req.setTimeout(4000,()=>{req.destroy();process.exit(1);});"
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 CMD node -e "const http=require('http');const path=process.env.HEALTHCHECK_PATH;const port=process.env.PORT||5000;const url='http://127.0.0.1:'+port+path;const req=http.get(url,res=>process.exit(res.statusCode===200?0:1));req.on('error',()=>process.exit(1));req.setTimeout(4000,()=>{req.destroy();process.exit(1);});"
 
 CMD ["node", "dist/server.js"]
 

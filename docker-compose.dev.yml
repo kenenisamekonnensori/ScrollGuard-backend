@@ -1,7 +1,7 @@
 
 services:
   app:
-    image: node:20
+    image: node:20.19.0
     container_name: backend_app
 
     working_dir: /app
@@ -23,7 +23,7 @@ services:
 
     command: >
       sh -c "
-        npm install -g pnpm &&
+        corepack enable &&
         pnpm install &&
         pnpm dev
       "
