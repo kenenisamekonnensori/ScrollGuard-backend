@@ -94,10 +94,7 @@ export async function signup(
       token,
       user: toPublicUser(user)
     };
-
-  } 
-    
-  catch (error: unknown) {
+  } catch (error: unknown) {
     if (error instanceof AppError) {
       throw error;
     }
