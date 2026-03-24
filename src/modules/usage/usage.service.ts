@@ -1,6 +1,6 @@
-import type { Actor } from "../../shared/types/actor";
-import { UsageModel } from "./usage.model";
-import type { TrackUsageInput, UsageStatsQuery } from "./usage.validation";
+import type { Actor } from "@/shared/types/actor.js";
+import { UsageModel } from "@/modules/usage/usage.model.js";
+import type { TrackUsageInput, UsageStatsQuery } from "@/modules/usage/usage.validation.js";
 
 interface UsageHistoryPoint {
   date: string;

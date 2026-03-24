@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { getFeaturesController } from "./feature.controller";
+import { getFeaturesController } from "@/modules/feature/feature.controller.js";
 
 export const featureRouter = Router();
 

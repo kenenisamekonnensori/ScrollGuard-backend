@@ -1,8 +1,8 @@
 import { Router } from "express";
 
-import { validateRequest } from "../../middlewares/validate.middleware";
-import { trackUsageController, usageStatsController } from "./usage.controller";
-import { trackUsageSchema, usageStatsQuerySchema } from "./usage.validation";
+import { validateRequest } from "@/middlewares/validate.middleware.js";
+import { trackUsageController, usageStatsController } from "@/modules/usage/usage.controller.js";
+import { trackUsageSchema, usageStatsQuerySchema } from "@/modules/usage/usage.validation.js";
 
 export const usageRouter = Router();
 

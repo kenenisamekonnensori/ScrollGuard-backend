@@ -4,9 +4,9 @@ import { afterEach, describe, it } from "node:test";
 import { SignJWT } from "jose";
 import request from "supertest";
 
-import { env } from "../config/env";
-import { SubscriptionModel } from "../modules/subscription/subscription.model";
-import { UserModel } from "../modules/user/user.model";
+import { env } from "@/config/env.js";
+import { SubscriptionModel } from "@/modules/subscription/subscription.model.js";
+import { UserModel } from "@/modules/user/user.model.js";
 
 type UserDocStub = {
   _id: { toString(): string };
@@ -66,7 +66,7 @@ afterEach(() => {
 
 describe("Subscription Endpoints", () => {
   it("rejects guest actor for subscription endpoints", async () => {
-    const { app } = await import("../app");
+    const { app } = await import("@/app.js");
 
     const statusResponse = await request(app).get("/api/v1/subscription/status");
     const upgradeResponse = await request(app)
@@ -94,7 +94,7 @@ describe("Subscription Endpoints", () => {
     });
 
     const token = await createUserToken("user_sub_001");
-    const { app } = await import("../app");
+    const { app } = await import("@/app.js");
 
     const response = await request(app)
       .get("/api/v1/subscription/status")
@@ -125,7 +125,7 @@ describe("Subscription Endpoints", () => {
     });
 
     const token = await createUserToken("user_sub_001_sync");
-    const { app } = await import("../app");
+    const { app } = await import("@/app.js");
 
     const response = await request(app)
       .get("/api/v1/subscription/status")
@@ -162,7 +162,7 @@ describe("Subscription Endpoints", () => {
     });
 
     const token = await createUserToken("user_sub_001_promote");
-    const { app } = await import("../app");
+    const { app } = await import("@/app.js");
 
     const response = await request(app)
       .get("/api/v1/subscription/status")
@@ -206,7 +206,7 @@ describe("Subscription Endpoints", () => {
     };
 
     const token = await createUserToken("user_sub_002");
-    const { app } = await import("../app");
+    const { app } = await import("@/app.js");
 
     const response = await request(app)
       .post("/api/v1/subscription/upgrade")
@@ -250,7 +250,7 @@ describe("Subscription Endpoints", () => {
     };
 
     const token = await createUserToken("user_sub_003");
-    const { app } = await import("../app");
+    const { app } = await import("@/app.js");
 
     const response = await request(app)
       .post("/api/v1/subscription/upgrade")
@@ -289,7 +289,7 @@ describe("Subscription Endpoints", () => {
     };
 
     const token = await createUserToken("user_sub_plan_conflict");
-    const { app } = await import("../app");
+    const { app } = await import("@/app.js");
 
     const response = await request(app)
       .post("/api/v1/subscription/upgrade")
@@ -303,7 +303,7 @@ describe("Subscription Endpoints", () => {
 
   it("rejects invalid upgrade plan", async () => {
     const token = await createUserToken("user_sub_004");
-    const { app } = await import("../app");
+    const { app } = await import("@/app.js");
 
     const response = await request(app)
       .post("/api/v1/subscription/upgrade")

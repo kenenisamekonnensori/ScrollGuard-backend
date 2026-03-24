@@ -1,7 +1,7 @@
 import { type NextFunction, type Request, type Response } from "express";
 
-import { sendSuccess } from "../../shared/utils/response";
-import { initializeGuest } from "./guest.service";
+import { sendSuccess } from "@/shared/utils/response.js";
+import { initializeGuest } from "@/modules/guest/guest.service.js";
 
 export async function initGuestController(
   req: Request,

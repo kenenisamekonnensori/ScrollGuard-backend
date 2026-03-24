@@ -1,10 +1,10 @@
 import { type NextFunction, type Request, type Response } from "express";
 
-import { AppError } from "../../middlewares/error-handler";
-import { sendSuccess } from "../../shared/utils/response";
-import { getProfile, updateProfile } from "./user.service";
-import type { UpdateProfileInput } from "./user.validation";
-import { requireValidatedBody } from "../../middlewares/validate.middleware";
+import { AppError } from "@/middlewares/error-handler.js";
+import { sendSuccess } from "@/shared/utils/response.js";
+import { getProfile, updateProfile } from "@/modules/user/user.service.js";
+import type { UpdateProfileInput } from "@/modules/user/user.validation.js";
+import { requireValidatedBody } from "@/middlewares/validate.middleware.js";
 
 function requireUserId(req: Request): string {
   if (!req.actor || req.actor.type !== "user") {

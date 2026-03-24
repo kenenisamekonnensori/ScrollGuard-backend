@@ -4,9 +4,9 @@ import { afterEach, describe, it } from "node:test";
 import { SignJWT } from "jose";
 import request from "supertest";
 
-import { env } from "../config/env";
-import { hasAccess } from "../modules/feature/feature.service";
-import { UserModel } from "../modules/user/user.model";
+import { env } from "@/config/env.js";
+import { hasAccess } from "@/modules/feature/feature.service.js";
+import { UserModel } from "@/modules/user/user.model.js";
 
 type FindByIdResult = { select: (fields: string) => { exec: () => Promise<unknown> } };
 
@@ -38,7 +38,7 @@ afterEach(() => {
 
 describe("Feature Access Endpoint", () => {
   it("returns guest-accessible features for guest actor", async () => {
-    const { app } = await import("../app");
+    const { app } = await import("@/app.js");
 
     const response = await request(app).get("/api/v1/features");
 
@@ -69,7 +69,7 @@ describe("Feature Access Endpoint", () => {
     });
 
     const token = await createUserToken("user_free_001");
-    const { app } = await import("../app");
+    const { app } = await import("@/app.js");
 
     const response = await request(app)
       .get("/api/v1/features")
@@ -100,7 +100,7 @@ describe("Feature Access Endpoint", () => {
     });
 
     const token = await createUserToken("user_premium_001");
-    const { app } = await import("../app");
+    const { app } = await import("@/app.js");
 
     const response = await request(app)
       .get("/api/v1/features")

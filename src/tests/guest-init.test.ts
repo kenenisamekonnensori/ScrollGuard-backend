@@ -4,7 +4,7 @@ import { describe, it } from "node:test";
 import { SignJWT } from "jose";
 import request from "supertest";
 
-import { env } from "../config/env";
+import { env } from "@/config/env.js";
 
 async function createUserToken(userId: string): Promise<string> {
   const secret = new TextEncoder().encode(env.JWT_SECRET);
@@ -19,7 +19,7 @@ async function createUserToken(userId: string): Promise<string> {
 
 describe("Guest Init Endpoint", () => {
   it("returns generated guest id when none is supplied", async () => {
-    const { app } = await import("../app");
+    const { app } = await import("@/app.js");
 
     const response = await request(app).post("/api/v1/guest/init");
 
@@ -33,7 +33,7 @@ describe("Guest Init Endpoint", () => {
 
   it("reuses existing guest id from header", async () => {
     const existingGuestId = "guest_existing_123";
-    const { app } = await import("../app");
+    const { app } = await import("@/app.js");
 
     const response = await request(app)
       .post("/api/v1/guest/init")
@@ -47,7 +47,7 @@ describe("Guest Init Endpoint", () => {
 
   it("forbids authenticated users from guest init", async () => {
     const token = await createUserToken("user_999");
-    const { app } = await import("../app");
+    const { app } = await import("@/app.js");
 
     const response = await request(app)
       .post("/api/v1/guest/init")

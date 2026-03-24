@@ -1,10 +1,10 @@
 import { type NextFunction, type Request, type Response } from "express";
 
-import { AppError } from "../../middlewares/error-handler";
-import { requireValidatedBody } from "../../middlewares/validate.middleware";
-import { sendSuccess } from "../../shared/utils/response";
-import { getSubscriptionStatus, upgradeSubscription } from "./subscription.service";
-import type { UpgradeSubscriptionInput } from "./subscription.validation";
+import { AppError } from "@/middlewares/error-handler.js";
+import { requireValidatedBody } from "@/middlewares/validate.middleware.js";
+import { sendSuccess } from "@/shared/utils/response.js";
+import { getSubscriptionStatus, upgradeSubscription } from "@/modules/subscription/subscription.service.js";
+import type { UpgradeSubscriptionInput } from "@/modules/subscription/subscription.validation.js";
 
 function readAuthenticatedUserId(req: Request): string {
   // requireAuth middleware should guarantee this path; treat absence as wiring error.

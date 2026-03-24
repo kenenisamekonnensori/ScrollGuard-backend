@@ -4,8 +4,8 @@ import { afterEach, describe, it } from "node:test";
 import { hash } from "bcryptjs";
 import request from "supertest";
 
-import { UserModel } from "../modules/user/user.model";
-import { UsageModel } from "../modules/usage/usage.model";
+import { UserModel } from "@/modules/user/user.model.js";
+import { UsageModel } from "@/modules/usage/usage.model.js";
 
 type FindOneResult = { exec: () => Promise<unknown> };
 
@@ -55,7 +55,7 @@ describe("Auth Login Endpoint", () => {
       return { exec: async () => ({ modifiedCount: 1 }) };
     };
 
-    const { app } = await import("../app");
+    const { app } = await import("@/app.js");
 
     const response = await request(app)
       .post("/api/v1/auth/login")
@@ -100,7 +100,7 @@ describe("Auth Login Endpoint", () => {
       return { exec: async () => ({ modifiedCount: 0 }) };
     };
 
-    const { app } = await import("../app");
+    const { app } = await import("@/app.js");
 
     const response = await request(app).post("/api/v1/auth/login").send({
       email: "noguest@example.com",
@@ -118,7 +118,7 @@ describe("Auth Login Endpoint", () => {
 
     userModel.findOne = () => ({ exec: async () => null });
 
-    const { app } = await import("../app");
+    const { app } = await import("@/app.js");
 
     const response = await request(app).post("/api/v1/auth/login").send({
       email: "missing@example.com",

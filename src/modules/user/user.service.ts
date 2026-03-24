@@ -1,6 +1,6 @@
-import { AppError } from "../../middlewares/error-handler";
-import { UserModel } from "./user.model";
-import type { UpdateProfileInput } from "./user.validation";
+import { AppError } from "@/middlewares/error-handler.js";
+import { UserModel } from "@/modules/user/user.model.js";
+import type { UpdateProfileInput } from "@/modules/user/user.validation.js";
 
 interface UserProfileDto {
   id: string;

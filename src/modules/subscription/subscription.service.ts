@@ -1,7 +1,7 @@
-import { AppError } from "../../middlewares/error-handler";
-import { UserModel } from "../user/user.model";
-import { SubscriptionModel } from "./subscription.model";
-import type { UpgradeSubscriptionInput } from "./subscription.validation";
+import { AppError } from "@/middlewares/error-handler.js";
+import { UserModel } from "@/modules/user/user.model.js";
+import { SubscriptionModel } from "@/modules/subscription/subscription.model.js";
+import type { UpgradeSubscriptionInput } from "@/modules/subscription/subscription.validation.js";
 
 interface SubscriptionStatusView {
   status: "active" | "none";

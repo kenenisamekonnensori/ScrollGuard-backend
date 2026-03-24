@@ -5,7 +5,7 @@ import request from "supertest";
 
 describe("Auth Google Endpoint", () => {
   it("rejects old payload shape without idToken", async () => {
-    const { app } = await import("../app");
+    const { app } = await import("@/app.js");
 
     const response = await request(app).post("/api/v1/auth/google").send({
       googleId: "attacker-controlled",

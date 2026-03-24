@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { initGuestController } from "./guest.controller";
+import { initGuestController } from "@/modules/guest/guest.controller.js";
 
 export const guestRouter = Router();
 
