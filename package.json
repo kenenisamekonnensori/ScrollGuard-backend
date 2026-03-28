@@ -13,7 +13,7 @@
     "build": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src",
+    "test": "NODE_ENV=test tsx --test --test-force-exit src/tests/*.test.ts",
     "lint": "eslint --ext .ts src",
     "ci:all": "pnpm typecheck && pnpm lint && pnpm test && pnpm build"
   },

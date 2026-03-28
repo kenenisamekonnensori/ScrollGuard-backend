@@ -13,9 +13,7 @@ if (env.TRUST_PROXY) {
   app.set("trust proxy", 1);
 }
 
-if (env.NODE_ENV !== "production") {
-  app.use(morgan("dev"));
-}
+app.use(morgan(env.NODE_ENV === "production" ? "combined" : "dev"));
 
 applySecurityMiddleware(app);
 

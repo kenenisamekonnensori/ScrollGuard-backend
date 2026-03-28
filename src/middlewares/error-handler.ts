@@ -1,6 +1,7 @@
 import { type NextFunction, type Request, type Response } from "express";
 
 import { sendError } from "@/shared/utils/response.js";
+import { logger } from "@/shared/utils/logger.js";
 
 export class AppError extends Error {
   public readonly statusCode: number;
@@ -21,11 +22,12 @@ export function notFoundHandler(req: Request, _res: Response, next: NextFunction
 
 export function errorHandler(
   err: Error,
-  _req: Request,
+  req: Request,
   res: Response,
   _next: NextFunction
 ): void {
   const statusCode = err instanceof AppError ? err.statusCode : 500;
+  const isTrustedOperationalError = err instanceof AppError && err.isOperational;
   const defaultCode =
     statusCode === 400
       ? "INVALID_INPUT"
@@ -37,6 +39,19 @@ export function errorHandler(
             ? "NOT_FOUND"
             : "INTERNAL_ERROR";
   const code = err instanceof AppError && err.code ? err.code : defaultCode;
+  const safeMessage =
+    statusCode >= 500 && !isTrustedOperationalError
+      ? "An unexpected error occurred"
+      : err.message;
 
-  sendError(res, statusCode, code, err.message);
+  if (statusCode >= 500) {
+    logger.errorWithCause("Request failed", err, {
+      path: req.originalUrl,
+      method: req.method,
+      code,
+      statusCode
+    });
+  }
+
+  sendError(res, statusCode, code, safeMessage);
 }
