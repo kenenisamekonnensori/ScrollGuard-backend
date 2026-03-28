@@ -1,5 +1,6 @@
 import { Router } from "express";
 
+import { aiRouter } from "@/modules/ai/ai.routes.js";
 import { authRouter } from "@/modules/auth/auth.routes.js";
 import { featureRouter } from "@/modules/feature/feature.routes.js";
 import { guestRouter } from "@/modules/guest/guest.routes.js";
@@ -11,6 +12,7 @@ import { healthRouter } from "@/routes/health.route.js";
 export const apiV1Router = Router();
 
 apiV1Router.use("/health", healthRouter);
+apiV1Router.use("/ai", aiRouter);
 apiV1Router.use("/auth", authRouter);
 apiV1Router.use("/features", featureRouter);
 apiV1Router.use("/guest", guestRouter);
