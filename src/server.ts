@@ -1,15 +1,19 @@
 import { app } from "@/app.js";
 import { connectDatabase, disconnectDatabase } from "@/config/database.js";
 import { env } from "@/config/env.js";
+import { logger } from "@/shared/utils/logger.js";
 
 let shuttingDown = false;
 
 async function startServer(): Promise<void> {
   await connectDatabase(env.MONGODB_URI);
+  logger.info("Database connection established");
 
   const server = app.listen(env.PORT, () => {
-    // Keep startup logs lightweight and environment-aware.
-    console.log(`API listening on port ${env.PORT} (${env.NODE_ENV})`);
+    logger.info("API server listening", {
+      port: env.PORT,
+      environment: env.NODE_ENV
+    });
   });
 
   const shutdown = async (signal: string): Promise<void> => {
@@ -18,14 +22,16 @@ async function startServer(): Promise<void> {
     }
 
     shuttingDown = true;
-    console.log(`${signal} received. Shutting down gracefully...`);
+    logger.warn("Shutdown signal received", { signal });
 
     server.close(async () => {
       await disconnectDatabase();
+      logger.info("HTTP server closed and database disconnected");
       process.exit(0);
     });
 
     setTimeout(() => {
+      logger.error("Forced shutdown timeout reached", { timeoutMs: 10_000 });
       process.exit(1);
     }, 10_000).unref();
   };
@@ -40,7 +46,6 @@ async function startServer(): Promise<void> {
 }
 
 startServer().catch((error: unknown) => {
-  const message = error instanceof Error ? error.message : "Unknown startup error";
-  console.error(`Failed to start server: ${message}`);
+  logger.errorWithCause("Failed to start server", error);
   process.exit(1);
 });

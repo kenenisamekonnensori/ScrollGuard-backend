@@ -27,15 +27,17 @@ export function applySecurityMiddleware(app: Express): void {
     })
   );
 
-  app.use(
-    rateLimit({
-      windowMs: env.RATE_LIMIT_WINDOW_MS,
-      limit: env.RATE_LIMIT_MAX,
-      standardHeaders: "draft-7",
-      legacyHeaders: false,
-      message: { error: "Too many requests. Please try again later." }
-    })
-  );
+  if (env.NODE_ENV !== "test") {
+    app.use(
+      rateLimit({
+        windowMs: env.RATE_LIMIT_WINDOW_MS,
+        limit: env.RATE_LIMIT_MAX,
+        standardHeaders: "draft-7",
+        legacyHeaders: false,
+        message: { error: "Too many requests. Please try again later." }
+      })
+    );
+  }
 
   app.use(hpp());
 

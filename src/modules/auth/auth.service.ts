@@ -6,6 +6,7 @@ import { env } from "@/config/env.js";
 import { AppError } from "@/middlewares/error-handler.js";
 import { UsageModel } from "@/modules/usage/usage.model.js";
 import { UserModel } from "@/modules/user/user.model.js";
+import { logger } from "@/shared/utils/logger.js";
 
 const jwtSecretKey = new TextEncoder().encode(env.JWT_SECRET);
 const googleClient = new OAuth2Client();
@@ -215,8 +216,10 @@ async function migrateGuestDataToUserBestEffort(guestId: string, userId: string)
     await migrateGuestDataToUser(guestId, userId);
   } catch (error) {
     // Keep auth success aligned with persisted user state when migration fails.
-    const message = error instanceof Error ? error.message : "unknown error";
-    console.error(`Guest usage migration failed for user ${userId}: ${message}`);
+    logger.errorWithCause("Guest usage migration failed", error, {
+      userId,
+      guestId
+    });
   }
 }
 
